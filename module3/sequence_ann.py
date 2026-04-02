@@ -17,7 +17,7 @@
 # WINDOW (default 3) is the window size used for training and prediction.
 # For example, a sequence of [1,2,3,4,5] with WINDOW=3 will train the ANN with [[1,2,3], [2,3,4]] -> [[4], [5]],
 # then print the predicted next value for [3,4,5], which should be approximately 6.
-# Must enter at least WINDOW + 2 values (for at least 2 input windows mapped to the next value).
+# Must enter at least WINDOW + 3 values (for at least 3 input windows mapped to the next value).
 import argparse
 import re
 from typing import Tuple, Callable
@@ -29,6 +29,7 @@ default_window_size = 3
 default_seed = 42
 default_learning_rate = 0.1
 default_hidden = 8
+min_windows = 3  # minimum number of training windows
 
 
 class SequenceANN:
@@ -154,8 +155,6 @@ def build_training_data(seq: ndarray, window_size: int) -> Tuple[ndarray, ndarra
 
 
 def main():
-    min_windows = 2  # minimum number of training windows
-
     def positive_int(value):
         i = int(value)
         if i <= 0:
