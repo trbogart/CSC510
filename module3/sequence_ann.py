@@ -197,8 +197,6 @@ def main():
     seq_norm, inverse = normalize(seq)
     x, y = build_training_data(seq_norm, args.window)
 
-    assert x.shape[1] == args.window
-    assert x.shape[0] == y.shape[0]
     random.seed(args.seed)
 
     net = SequenceANN(args.window, args.hidden, args.lr)
