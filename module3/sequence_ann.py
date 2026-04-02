@@ -9,7 +9,7 @@
 #   -n, --epochs EPOCHS  Number of training epochs (default: 10,000)
 #   -w, --window WINDOW  Window size (default: 3)
 #   -l, --lr LR          Learning rate (default: 0.1)
-#   -z, --hidden HIDDEN  Size of hidden layer (default: 10)
+#   -z, --hidden HIDDEN  Size of hidden layer (default: 8)
 #   -s, --seed SEED      Random seed
 #
 # The script prompts the user to enter a sequence of numbers with a constant difference, e.g.:  1.1 1.2 1.3 1.4 1.5 1.6
