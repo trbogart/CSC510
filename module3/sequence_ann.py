@@ -1,6 +1,6 @@
 # Module 3 Critical Thinking - Hand-Made Shallow ANN in Python
 #
-# Usage: sequence_shallow_ann.py [-h] [-n EPOCHS] [-w WINDOW] [-s SEED]
+# Usage: sequence_ann.py [-h] [-n EPOCHS] [-w WINDOW] [-l LR] [-z HIDDEN] [-s SEED]
 #
 # Use a 2-layer ANN to predict the next number in a sequence.
 #
@@ -31,9 +31,9 @@ default_learning_rate = 0.1
 default_hidden = 8
 
 
-class SequenceShallowANN:
+class SequenceANN:
     """
-    Shallow ANN to predict next number in numeric sequence.
+    2-layer ANN to predict next number in numeric sequence.
 
     Input layer: n_input neurons
     Hidden layer: n_hidden neurons (sigmoid)
@@ -46,17 +46,16 @@ class SequenceShallowANN:
     b2 : (1, 1)
     """
 
-    a1: ndarray
-    z1: ndarray
-    y_hat: ndarray
+    a1: ndarray  # (m, n_hidden)
+    z1: ndarray  # (m, n_hidden)
+    y_hat: ndarray  # (m, 1)
 
     # noinspection PyTypeChecker
-    def __init__(self, num_inputs: int, num_hidden: int = 8, learning_rate: float = 0.1):
+    def __init__(self, num_inputs: int, num_hidden: int, learning_rate: float):
         self.num_inputs = num_inputs
         self.num_hidden = num_hidden
         self.lr = learning_rate
 
-        # approximate He initialization for weights
         self.w1: ndarray = random.randn(num_inputs, num_hidden) * 0.5
         self.w2: ndarray = random.randn(num_hidden, 1) * 0.5
         self.b1 = zeros((1, num_hidden))
@@ -118,7 +117,7 @@ class SequenceShallowANN:
 
     @staticmethod
     def sigmoid_derivative(x: ndarray) -> ndarray:
-        s = SequenceShallowANN.sigmoid(x)
+        s = SequenceANN.sigmoid(x)
         return s * (1.0 - s)
 
 
@@ -160,7 +159,7 @@ def main():
     def positive_int(value):
         i = int(value)
         if i <= 0:
-            raise argparse.ArgumentTypeError(f"{value} is an invalid positive int value")
+            raise argparse.ArgumentTypeError(f'{value} is an invalid positive int value')
         return i
 
     parser = argparse.ArgumentParser(description='Use a 2-layer ANN to predict the next number in a sequence.')
@@ -202,7 +201,7 @@ def main():
     assert x.shape[0] == y.shape[0]
     random.seed(args.seed)
 
-    net = SequenceShallowANN(args.window, args.hidden, args.lr)
+    net = SequenceANN(args.window, args.hidden, args.lr)
     net.train(x, y, epochs=args.epochs, print_every=args.epochs // 10)
 
     # predict next value from final window
