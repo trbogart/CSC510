@@ -47,7 +47,7 @@ class SequenceShallowANN:
         self.num_hidden = num_hidden
         self.lr = learning_rate
 
-        # He initialization for weights
+        # approximate He initialization for weights
         self.w1: ndarray = random.randn(num_inputs, num_hidden) * 0.5
         self.w2: ndarray = random.randn(num_hidden, 1) * 0.5
         self.b1 = zeros((1, num_hidden))
