@@ -1,16 +1,23 @@
 # Module 3 Critical Thinking - Hand-Made Shallow ANN in Python
 #
-# A 2-layer ANN (1 hidden layer + 1 output layer) trained with backpropagation.
-# Predicts the next number in a linear arithmetic sequence.
-# Example: given [2, 4, 6, 8], predict 10.
+# Usage: sequence_shallow_ann.py [-h] [-n EPOCHS] [-w WINDOW] [-s SEED]
 #
-# Usage:
-#   python shallow_ann.py
+# Use a 2-layer ANN to predict the next number in a sequence.
+#
+# Options:
+#   -h, --help           show this help message and exit
+#   -n, --epochs EPOCHS  Number of training epochs (default: 10,000)
+#   -w, --window WINDOW  Window size (default: 3)
+#   -l, --lr LR          Learning rate (default: 0.1)
+#   -z, --hidden HIDDEN  Size of hidden layer (default: 10)
+#   -s, --seed SEED      Random seed
+#
 # The script prompts the user to enter a sequence of numbers with a constant difference, e.g.:  1.1 1.2 1.3 1.4 1.5 1.6
-# It will then predict the next value.
-# Default window size for training and prediction is 4.
-# Must enter at least window size + 2 values (for at least 2 input windows mapped to the next value)
-# Default number of training epochs is 10,000.
+# It will then train a 2-layer ANN with EPOCHS epochs to predict the next value.
+# WINDOW (default 3) is the window size used for training and prediction.
+# For example, a sequence of [1,2,3,4,5] with WINDOW=3 will train the ANN with [[1,2,3], [2,3,4]] -> [[4], [5]],
+# then print the predicted next value for [3,4,5], which should be approximately 6.
+# Must enter at least WINDOW + 2 values (for at least 2 input windows mapped to the next value).
 import argparse
 import re
 from typing import Tuple, Callable
@@ -18,8 +25,10 @@ from typing import Tuple, Callable
 from numpy import random, array, mean, exp, ndarray, zeros
 
 default_epochs = 10_000
-default_window_size = 4
+default_window_size = 3
 default_seed = 42
+default_learning_rate = 0.1
+default_hidden = 8
 
 
 class SequenceShallowANN:
@@ -115,7 +124,7 @@ class SequenceShallowANN:
 
 def normalize(arr: ndarray) -> Tuple[ndarray, Callable[[ndarray], ndarray]]:
     """
-    Normalize an array with values between 0 and 1.
+    Normalize an array to have values between 0 and 1, inclusive.
     :param arr: array to normalize
     :return: normalized array and inverse function
     """
@@ -124,18 +133,18 @@ def normalize(arr: ndarray) -> Tuple[ndarray, Callable[[ndarray], ndarray]]:
     normalized = (arr - lo) / span
 
     # inverse transform
-    def inverse(a: ndarray):
-        return a * span + lo
+    def inverse(n: ndarray):
+        return n * span + lo
 
     return normalized, inverse
 
 
 def build_training_data(seq: ndarray, window_size: int) -> Tuple[ndarray, ndarray]:
     """
-    Builds training data over window size of 4.
+    Builds training data over given window size.
     :param seq: sequence
     :param window_size: window size
-    :return:
+    :return: tuple of x and y data
     """
     x_values = []
     y_values = []
@@ -148,12 +157,22 @@ def build_training_data(seq: ndarray, window_size: int) -> Tuple[ndarray, ndarra
 def main():
     min_windows = 2  # minimum number of training windows
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-n', '--epochs', type=int, default=default_epochs,
-                        help=f'Number of training epochs (default: {default_epochs})')
-    parser.add_argument('-w', '--window', type=int, default=default_window_size,
-                        help=f'Training window size (default: {default_window_size})')
-    parser.add_argument('-s', '--seed', type=int, default=default_seed, help='Random seed')
+    def positive_int(value):
+        i = int(value)
+        if i <= 0:
+            raise argparse.ArgumentTypeError(f"{value} is an invalid positive int value")
+        return i
+
+    parser = argparse.ArgumentParser(description='Use a 2-layer ANN to predict the next number in a sequence.')
+    parser.add_argument('-n', '--epochs', type=positive_int, default=default_epochs,
+                        help=f'Number of training epochs (default: {default_epochs:,})')
+    parser.add_argument('-w', '--window', type=positive_int, default=default_window_size,
+                        help=f'Window size (default: {default_window_size})')
+    parser.add_argument('-l', '--lr', type=float, default=default_learning_rate,
+                        help=f'Learning rate (default: {default_learning_rate})')
+    parser.add_argument('-z', '--hidden', type=positive_int, default=default_hidden,
+                        help=f'Size of hidden layer (default: {default_hidden})')
+    parser.add_argument('-s', '--seed', type=positive_int, default=default_seed, help='Random seed')
     args = parser.parse_args()
 
     min_seq = args.window + min_windows
@@ -167,7 +186,7 @@ def main():
     while True:
         raw = input("Enter sequence: ")
         try:
-            seq = array([float(s.strip()) for s in re.split('[, \t]', raw)])
+            seq = array([float(s) for s in re.split('[, \t]+', raw)])
             if len(seq) < min_seq:
                 usage()
             else:
@@ -183,7 +202,7 @@ def main():
     assert x.shape[0] == y.shape[0]
     random.seed(args.seed)
 
-    net = SequenceShallowANN(args.window)
+    net = SequenceShallowANN(args.window, args.hidden, args.lr)
     net.train(x, y, epochs=args.epochs, print_every=args.epochs // 10)
 
     # predict next value from final window
